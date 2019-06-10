@@ -11,8 +11,16 @@ net_reward = 0
 print('starting run')
 
 action = env.action_space.noop()
-print(vars(action))
-obs, reward, done, info = env.step(
-    action)
-print(vars(obs))
 
+    action['camera'] = [0, 0.03*obs["compassAngle"]]
+    action['back'] = 0
+    action['forward'] = 1
+    action['jump'] = 1
+    action['attack'] = 1
+    print()
+
+    obs, reward, done, info = env.step(
+        action)
+
+    net_reward += reward
+    print("Total reward: ", net_reward)

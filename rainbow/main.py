@@ -4,7 +4,7 @@ import numpy as np
 import torch
 
 from agent import Agent
-from env_util import get_env
+from env_util import PytorchWrapper, NavigateWrapper, get_env
 from memory import ReplayMemory
 from test import test
 from tqdm import tqdm
@@ -64,9 +64,9 @@ def log(s):
 
 
 # Environment
-env = get_env()
-env.train()
-action_space = env.action_space()
+
+env = PytorchWrapper(NavigateWrapper(get_env()))
+action_space = env.action_space.n
 
 
 # Agent
@@ -121,4 +121,4 @@ else:
 
     state = next_state
 
-env.close()
+
