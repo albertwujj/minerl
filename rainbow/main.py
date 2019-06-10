@@ -4,7 +4,7 @@ import numpy as np
 import torch
 
 from agent import Agent
-from env import get_env
+from env_util import get_env
 from memory import ReplayMemory
 from test import test
 from tqdm import tqdm
