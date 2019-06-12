@@ -1,59 +1,54 @@
-import minerl
+from functools import reduce
+from operator import mul
+
 import gym
 import numpy as np
 from gym.core import Wrapper, ObservationWrapper, ActionWrapper
-from gym.spaces import Space
+
+import minerl
 
 def get_env(env_name='MineRLNavigateDense-v0'):
     env = gym.make(env_name)
     return env
 
+
+class ComboDiscrete():
+    def __init__(self, sizes):
+        self.sizes = sizes
+        self.n = reduce(mul, sizes)
+
+    def num_to_options(self, num):
+        option_selections = []
+        for size in self.sizes:
+            option_selections.append(num // size)
+            num = num % size
+        return option_selections
+
+camera_actions = 9
+movement_actions = 4
 class DiscreteActionWrapper(ActionWrapper):
     def __init__(self, env):
         super(DiscreteActionWrapper, self).__init__(env)
-        self.action_space = Discrete(200)
+        self.discretizer = ComboDiscrete([6,3,3,2])
+        self.action_space = gym.spaces.Discrete(self.discretizer.n)
 
-    def action(self, discrete_action):
 
-        camera = discrete_action // 9
-        camera = [int(character) for character in bin(camera)]
-        pitch = camera[0]
-        yaw = camera[1]
-        discrete_action = discrete_action % 9
+    def action(self, num):
 
-        wasd = discrete_action // 4
-        wasd = [True if i == wasd else False for i in range(4)]
-        left, right, forward, back = wasd
-        rest_of_options = discrete_action % 4
-
-        rest_of_options = [int(character) for character in bin(rest_of_options)]
-        attack = rest_of_options[4]
-        jump = rest_of_options[5]
-        place = rest_of_options[6]
-
-        action = self.action_space.noop()
-        action['camera'] = [pitch, yaw]
-        action['left'] = left
-        action['right'] = right
-        action['forward'] = forward
-        action['back'] = back
-        action['attack'] = attack
-        action['jump'] = jump
-        action['place'] = place
+        option_selections = self.discretizer.num_to_options(num)
 
         return action
+
 
 class NavigateWrapper(ObservationWrapper):
     def __init__(self, env):
         super(NavigateWrapper, self).__init__(env)
+        self.observation_space = gym.spaces.Box(0, 255,shape=(64*64*3+1,))
 
     def observation(self, base_obs):
-        obs = []
-        obs.append()
-        obs.append(base_obs['compassAngle'])
-        obs = np.concatenate([base_obs['pov'].flatten(), base_obs['compassAngle'].flatten()])
+        base_obs, info = base_obs
+        obs = np.concatenate([base_obs['pov'].flatten(), [base_obs['compassAngle']]])
         return obs
-
 
 
 import torch
@@ -63,7 +58,7 @@ class PytorchWrapper(Wrapper):
         self.device = device
 
     def step(self, action):
-        obs, reward, done, info = self.env.step(action)
+        obs, reward, done, info = self.env.step(action)=
 
         obs = torch.from_numpy(obs).float().to(self.device)
         reward = torch.from_numpy(reward).float().to(self.device)
@@ -72,7 +67,7 @@ class PytorchWrapper(Wrapper):
         return obs, reward, done, info
 
     def reset(self):
-        obs, info = self.env.reset()
+        obs = self.env.reset()
         obs = torch.from_numpy(obs).float().to(self.device)
-        return obs, info
+        return obs
 
