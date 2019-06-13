@@ -1,0 +1,10 @@
+import minerl
+
+data = minerl.data.make('MineRLObtainDiamond-v0')
+
+# Iterate through a single epoch gathering sequences of at most 32 steps
+for obs, rew, done, act in data.seq_iter(num_epochs=1, max_sequence_len=32):
+    print("Number of diffrent actions:", len(act))
+    print("Number of diffrent observations:", len(obs))
+    print(rew.shape)
+    print(done.shape)

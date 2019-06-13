@@ -1,6 +1,6 @@
 import minerl
 import gym
-env = gym.make('MineRLNavigateDense-v0')
+env = gym.make('MineRLNavigateExtremeDense-v0')
 
 
 obs, _ = env.reset()
@@ -10,7 +10,7 @@ net_reward = 0
 while not done:
     action = env.action_space.noop()
 
-    action['camera'] = [0, 0.10*obs["compassAngle"]]
+    action['camera'] = [0, 0.03*obs["compassAngle"]]
     action['back'] = 0
     action['forward'] = 1
     action['jump'] = 1

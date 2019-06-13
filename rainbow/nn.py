@@ -17,7 +17,7 @@ def shape_list(x):
     dynamic = tf.shape(x)
     return [dynamic[i] if s is None else s for i, s in enumerate(static)]
 
-def mine_cnn(obs_batch):
+def mine_cnn(obs_batch, dense=None):
     """
     Apply the CNN architecture from the Nature DQN paper.
 
@@ -41,11 +41,12 @@ def mine_cnn(obs_batch):
     # max outputs for some environments.
     del conv_kwargs['kernel_initializer']
 
-    return flat_in
+    if dense is not None:
+        return dense(flat_in, 512, **conv_kwargs)
+    else:
+        return flat_in
 
 def mine_nn(obs_batch):
-
-    s = shape_list(obs_batch)
 
     obs_batch = tf.reshape(obs_batch, (-1, 64*64*3+1, 4))
     pov, compass = obs_batch[:, :-1, :], obs_batch[:, -1:, :]
@@ -67,7 +68,7 @@ class MineDistQNetwork(DistQNetwork):
 
     """
 
-    def __init__(self,
+    def __init__(self, base_nn,
                  session,
                  num_actions,
                  obs_vectorizer,
@@ -81,6 +82,7 @@ class MineDistQNetwork(DistQNetwork):
                  input_scale=1 / 0xff):
         self._input_dtype = input_dtype
         self.input_scale = input_scale
+        self.base_nn = base_nn
         super().__init__(session, num_actions, obs_vectorizer, name,
                          num_atoms, min_val, max_val,
                          dueling=dueling, dense=dense)
@@ -91,10 +93,10 @@ class MineDistQNetwork(DistQNetwork):
 
     def base(self, obs_batch):
         obs_batch = tf.cast(obs_batch, tf.float32) * self.input_scale
-        return mine_nn(obs_batch)
+        return self.base_nn(obs_batch)
 
 
-def mine_rainbow_online_target(session,
+def mine_rainbow_online_target(base_nn, session,
                                num_actions,
                                obs_vectorizer,
                                num_atoms=51,
@@ -118,7 +120,7 @@ def mine_rainbow_online_target(session,
       A tuple (online, target).
     """
     def maker(name):
-        return MineDistQNetwork(session, num_actions, obs_vectorizer, name,
+        return MineDistQNetwork(base_nn, session, num_actions, obs_vectorizer, name,
                                   num_atoms, min_val, max_val, dueling=True,
                                   dense=partial(noisy_net_dense, sigma0=sigma0))
     return maker('online'), maker('target')
