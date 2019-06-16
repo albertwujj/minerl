@@ -13,16 +13,15 @@ from anyrl.envs.wrappers import BatchedFrameStack
 from anyrl.rollouts import BatchedPlayer, PrioritizedReplayBuffer, NStepPlayer
 from anyrl.spaces import gym_space_vectorizer
 
-
 from nn import mine_rainbow_online_target, mine_cnn
-from eval_util import evaluate
-from env_util import SimpleNavigateEnvWrapper, get_env
-from experts_util import ImitationPlayer
+from util.eval_util import evaluate
+from util.env_util import SimpleNavigateEnvWrapper, get_env
+from util.experts_util import ImitationPlayer, non_bugged_data_arr
 
 
 def main():
 
-    env_name = 'MineRLNavigateExtremeDense-v0'
+    env_name = 'MineRLNavigateDense-v0'
     """Run DQN until the environment throws an exception."""
     base_env = [SimpleNavigateEnvWrapper(get_env(env_name)) for _ in range(1)]
     env = BatchedFrameStack(BatchedGymEnv([base_env]), num_images=4, concat=True)
@@ -39,17 +38,19 @@ def main():
         optimize = dqn.optimize(learning_rate=1e-4)
         sess.run(tf.global_variables_initializer())
 
-        buffer_capacity = 500000
+        buffer_capacity = 5000
 
         replay_buffer = PrioritizedReplayBuffer(buffer_capacity, 0.5, 0.4, epsilon=0.1)
-        data_iter = minerl.data.make(env_name).seq_iter(num_epochs=1, max_sequence_len=32)
-        expert_player = NStepPlayer(ImitationPlayer(data_iter, 500000), 3)
+
+        iter = non_bugged_data_arr(env_name, num_trajs=100)
+        expert_player = NStepPlayer(ImitationPlayer(iter, 200), 3)
+
 
         for traj in expert_player.play():
             replay_buffer.add_sample(traj, init_weight=1)
 
         print('starting training')
-        dqn.train(num_steps=5000,
+        dqn.train(num_steps=200,
                   player=player,
                   replay_buffer=replay_buffer,
                   optimize_op=optimize,

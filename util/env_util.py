@@ -1,3 +1,7 @@
+"""
+[pitch, yaw] = [vertical, horizontal]
+"""
+
 from functools import reduce
 from operator import mul
 
@@ -6,6 +10,7 @@ import numpy as np
 from gym.core import Wrapper, ObservationWrapper, ActionWrapper
 
 import minerl
+
 
 def get_env(env_name='MineRLNavigateDense-v0'):
     env = gym.make(env_name)
