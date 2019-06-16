@@ -54,16 +54,8 @@ class SimpleNavigateEnvWrapper(Wrapper):
         return obs['pov']
 
 
-
-
-
-
-
-
-
-
-
 class FullNavigateEnvWrapper(Wrapper):
+    # TODO: IN PROGRESS
     def __init__(self, env):
         super(FullNavigateEnvWrapper, self).__init__(env)
         self.last_compass = 0
@@ -107,33 +99,3 @@ class FullNavigateEnvWrapper(Wrapper):
         self.last_compass = obs['compassAngle']
         info['compassAngle'] = obs['compassAngle']
         return obs['pov']
-
-camera_actions = 9
-movement_actions = 4
-class NavigateActionWrapper(ActionWrapper):
-    def __init__(self, env):
-        super(NavigateActionWrapper, self).__init__(env)
-        self.discretizer = ComboDiscrete([4])
-        self.action_space = gym.spaces.Discrete(self.discretizer.n)
-
-    def action(self, num):
-        option_selections = self.discretizer.num_to_options(num)
-        coef = option_selections[0] * .01 + .015
-        action = self.env.action_space.noop()
-        action['camera'] = coef
-        action['back'] = 0
-        action['forward'] = 1
-        action['jump'] = 1
-        action['attack'] = 1
-        return action
-
-
-class NavigateWrapper(ObservationWrapper):
-    def __init__(self, env):
-        super(NavigateWrapper, self).__init__(env)
-        self.observation_space = gym.spaces.Box(0, 255,shape=(64*64*3+1,))
-
-    def observation(self, base_obs):
-        base_obs, info = base_obs
-        obs = np.concatenate([base_obs['pov'].flatten(), [base_obs['compassAngle']]])
-        return obs
