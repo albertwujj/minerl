@@ -27,25 +27,29 @@ def get_visibles(back_traj):
 
         # get movement angle
         unanchored_theta = np.arcsin(vert/horiz)
-        anchored_theta = prev_angle + unanchored_theta
+        anchored_theta = (prev_angle + angle) / 2 + unanchored_theta
 
-        # get movement vector
+        # calculate magnitude
         dist = 1
         if (left + right + forward + back == 2) and not ((left and right) or (forward and back)):
             dist = np.sqrt(2)
         location -= np.asarray([np.sin(anchored_theta) * dist, np.cos(anchored_theta) * dist])
-        angle = prev_angle
+
 
 
         theta_item = np.arctan(location[0]/location[1])
         ideal = 180 + theta_item # yes
 
-        range = 45
+        range = 55 # field of view in Minecraft is 120 degrees. 120 / 2 = 60, reduce slightly to be safe
+        
         if angle > ideal - range and angle < ideal + range: # item is visible
             obses.append(obs)
             angles.append(np.asarray([-angle]))
             locations.append(-locations)
 
+        angle = prev_angle
+
 
     return obses, locations, angles
+
 

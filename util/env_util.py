@@ -54,6 +54,8 @@ class SimpleNavigateEnvWrapper(Wrapper):
         return obs['pov']
 
 
+
+
 class FullNavigateEnvWrapper(Wrapper):
     # TODO: IN PROGRESS
     def __init__(self, env):
