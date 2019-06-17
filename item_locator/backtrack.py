@@ -36,12 +36,11 @@ def get_visibles(back_traj):
         location -= np.asarray([np.sin(anchored_theta) * dist, np.cos(anchored_theta) * dist])
 
 
-
         theta_item = np.arctan(location[0]/location[1])
         ideal = 180 + theta_item # yes
 
         range = 55 # field of view in Minecraft is 120 degrees. 120 / 2 = 60, reduce slightly to be safe
-        
+
         if angle > ideal - range and angle < ideal + range: # item is visible
             obses.append(obs)
             angles.append(np.asarray([-angle]))

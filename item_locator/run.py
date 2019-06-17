@@ -31,7 +31,6 @@ for t in range(num_trajs):
     if not obses:
         continue
 
-
     test_obs, test_locations, test_angles = obses, locations, angles
 
     print('training')
@@ -41,4 +40,3 @@ for t in range(num_trajs):
 
 pred_locations, pred_angles = model.predict(test_obs)
 print(pred_locations.mean(), ((pred_locations - test_locations) **2).mean())
-
